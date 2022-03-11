@@ -2,7 +2,6 @@
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import classification_report
 from sklearn.svm import SVR
 
 # Custom Modules
@@ -66,5 +65,3 @@ if __name__ == "__main__":
         print(f"Mean Accuracy: {mean:0.4f} ± {std*2:0.4f} for {params}")
 
     y_true, y_pred = y_test, model.predict(x_test)
-
-    # print(classification_report(y_true, y_pred))
