@@ -2,6 +2,7 @@
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
+from sklearn.model_selection import GridSearchCV
 import numpy as np
 
 # Custom Modules
@@ -28,27 +29,35 @@ if __name__ == "__main__":
 
     # Define scaler and SVR
     scaler = StandardScaler()
-    svr = SVR(
-        kernel='linear',
-        C=0.1
-    )
+    svr = SVR()
 
-    model = Pipeline(steps=[("scaler", scaler), ("svr", svr)])
+    pipe = Pipeline(steps=[("scaler", scaler), ("svr", svr)])
 
-    # Training
+    # Set parameters for Grid seach cross-validation
+    tuned_params = [
+        {
+            "svr__kernel": ["rbf"],
+            "svr__gamma": [1e-4, 1e-3, 'scale', 'auto'],
+            "svr__C": [1e-2, 0.1, 1, 10, 100]
+        },
+
+        {
+            "svr__kernel": ["linear"],
+            "svr__C": [1e-2, 0.1, 1, 10, 100]
+        },
+    ]
+
+    # Grid Search
+    model = GridSearchCV(pipe, tuned_params)
     model.fit(x_train_data, y_train_data)
 
-    # Import all of the data
-    x_data, y_data = utils.import_data(
-        data_root_path=opt.data_root_path,
-        selected_bands=opt.selected_bands,
-        regression=False,
-        derivative=opt.derivative,
-        mushroom_class=opt.mushroom_class,
-        normalize="zscore",
-        shuffle=False,
-    )
+    print("Best parameters set: ")
+    print()
+    print(model.best_params_)
+    print()
 
-    evaluate_SVR(model, x_data)
+    means = model.cv_results_["mean_test_score"]
+    stds = model.cv_results_["std_test_score"]
 
-    pass
+    for mean, std, params in zip(means, stds, model.cv_results_["params"]):
+        print(f"Mean R2 Scores: {mean:0.4f} ± {std*2:0.4f} for {params}")

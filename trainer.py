@@ -9,6 +9,8 @@ from sklearn.model_selection import KFold
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
+# Plotting
+from matplotlib import pyplot as plt
 
 # Tensorflow
 from tensorflow import keras
@@ -16,6 +18,8 @@ from keras.models import Sequential
 from keras.layers import Dense
 from keras.losses import SparseCategoricalCrossentropy
 
+
+# Tensorflow and SVM Functions
 
 def neuron_permutor(n_hidden: int, max_neuron='auto', min_neuron=32) -> list:
     """Return the permutation of number of nuerons for a neural network.
@@ -167,7 +171,9 @@ def KFold_training(
     return report
 
 
-def build_SVR(kernel=None, gamma=None, C=None):
+# SVR Functions
+
+def build_SVR(kernel=None, gamma='auto', C=None):
     # Define scaler and SVR
     scaler = StandardScaler()
     svr = SVR(kernel=kernel, gamma=gamma, C=C)
@@ -177,7 +183,7 @@ def build_SVR(kernel=None, gamma=None, C=None):
     return model
 
 
-def evaluate_SVR(model, x_data):
+def evaluate_SVR(model, x_data, C, gamma=None):
     '''Evaluate SVR model'''
     preds = model.predict(x_data)
 
@@ -186,6 +192,18 @@ def evaluate_SVR(model, x_data):
     for i in range(0, len(preds), n_data_per_class):
         mean_of_class = np.mean(preds[i:i+n_data_per_class])
         mean_regression_scores.append(mean_of_class)
+
+    plt.figure()
+    if gamma == None:
+        kernel = 'Linear'
+        plt.title(f"kernel: {kernel}, C = {C}")
+        plt.plot(mean_regression_scores)
+        plt.savefig(f"../svr_results/{kernel}_{C}.png")
+    else:
+        kernel = 'RBF'
+        plt.plot(mean_regression_scores)
+        plt.title(f"kernel: {kernel}, gamma = {gamma}, C = {C}")
+        plt.savefig(f"../svr_results/{kernel}_{gamma}_{C}.png")
 
     print(mean_regression_scores)
 

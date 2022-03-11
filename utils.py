@@ -14,7 +14,7 @@ class Config():
     def __init__(self):
         # Data parameters
         self.data_root_path = 'D:/Repos/Python/freshness-decay/data/'
-        self.derivative = False
+        self.derivative = True
         if self.derivative:
             self.selected_bands = [i for i in range(299)]
         else:

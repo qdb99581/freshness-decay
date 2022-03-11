@@ -54,9 +54,15 @@ if __name__ == "__main__":
         for C in rbf_param_set["svr__C"]:
             model = trainer.build_SVR(kernel='rbf', gamma=gamma, C=C)
             model.fit(x_train_data, y_train_data)
-            trainer.evaluate_SVR(model, x_all_data)
+            trainer.evaluate_SVR(model, x_all_data, gamma, C)
             
+    # Linear
+    for C in linear_param_set["svr__C"]:
+        model = trainer.build_SVR(kernel='linear', C=C)
+        model.fit(x_train_data, y_train_data)
+        trainer.evaluate_SVR(model, x_all_data, C)
 
+    
     # model.fit(x_train, y_train)
     # params = model.get_params()
 
