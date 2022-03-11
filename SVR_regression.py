@@ -1,5 +1,6 @@
 # Prepare for SVR
 from sklearn.svm import SVR
+import numpy as np
 
 # Custom Modules
 import utils
@@ -46,6 +47,10 @@ if __name__ == "__main__":
     # Evaluating
     preds = model.predict(x_data)
 
-    for pred in preds:
+    n_data_per_class = 15
+    mean_regression_scores = []
+    for i in range(0, len(preds), n_data_per_class):
+        mean_of_class = np.mean(preds[i:i+n_data_per_class])
+        mean_regression_scores.append(mean_of_class)
 
-        pass
+    print(mean_regression_scores)
