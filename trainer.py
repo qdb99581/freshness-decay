@@ -3,9 +3,12 @@ import utils
 
 # Numeric Operations
 import numpy as np
-
 # Sci-Kit Learn
 from sklearn.model_selection import KFold
+# Prepare for SVR
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVR
 
 # Tensorflow
 from tensorflow import keras
@@ -58,7 +61,7 @@ def build_model(neurons_layout: list, activation: str, selected_bands: list, lea
     Args:
         neurons_layout (list): A list of integers indicates the number of neurons in each layer.
         activation (str): Activation name. e.g., "relu", "linear"
-        selected_bands (list): A list of integers indicates the desired bands. 
+        selected_bands (list): A list of integers indicates the desired bands.
         learning_rate (float)
 
     Returns:
@@ -103,7 +106,7 @@ def KFold_training(
         y_data (np.ndarray)
         neurons_layout (list): List of integers indicates the number of neurons in each hidden layer.
         activation (str): Activation name. e.g., "relu", "linear"
-        selected_bands (list): A list of integers indicates the desired bands. 
+        selected_bands (list): A list of integers indicates the desired bands.
         learning_rate (int)
         batch_size (int)
         valid_ratio (float): Validation size in terms of training data size.
@@ -162,6 +165,29 @@ def KFold_training(
     report = f"Accuracy: {mean_acc}% ± {std_acc}% for {neurons_layout}"
 
     return report
+
+
+def build_SVR(kernel=None, gamma=None, C=None):
+    # Define scaler and SVR
+    scaler = StandardScaler()
+    svr = SVR(kernel=kernel, gamma=gamma, C=C)
+
+    # Scale the trainig data by z-score (Normalization)
+    model = Pipeline(steps=[("scaler", scaler), ("svr", svr)])
+    return model
+
+
+def evaluate_SVR(model, x_data):
+    '''Evaluate SVR model'''
+    preds = model.predict(x_data)
+
+    n_data_per_class = 50
+    mean_regression_scores = []
+    for i in range(0, len(preds), n_data_per_class):
+        mean_of_class = np.mean(preds[i:i+n_data_per_class])
+        mean_regression_scores.append(mean_of_class)
+
+    print(mean_regression_scores)
 
 
 if __name__ == "__main__":

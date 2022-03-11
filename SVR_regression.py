@@ -1,4 +1,6 @@
 # Prepare for SVR
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
 import numpy as np
 
@@ -24,11 +26,14 @@ if __name__ == "__main__":
     print(
         f"Check if the input data is C-contiguous: {x_train_data.flags['C_CONTIGUOUS']}")
 
-    # Define SVR
-    model = SVR(
+    # Define scaler and SVR
+    scaler = StandardScaler()
+    svr = SVR(
         kernel='linear',
         C=0.1
     )
+
+    model = Pipeline(steps=[("scaler", scaler), ("svr", svr)])
 
     # Training
     model.fit(x_train_data, y_train_data)
@@ -44,13 +49,6 @@ if __name__ == "__main__":
         shuffle=False,
     )
 
-    # Evaluating
-    preds = model.predict(x_data)
+    evaluate_SVR(model, x_data)
 
-    n_data_per_class = 15
-    mean_regression_scores = []
-    for i in range(0, len(preds), n_data_per_class):
-        mean_of_class = np.mean(preds[i:i+n_data_per_class])
-        mean_regression_scores.append(mean_of_class)
-
-    print(mean_regression_scores)
+    pass

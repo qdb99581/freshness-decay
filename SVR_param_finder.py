@@ -1,17 +1,12 @@
-# Prepare for SVR
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import GridSearchCV
-from sklearn.svm import SVR
-
 # Custom Modules
 import utils
+import trainer
 
 if __name__ == "__main__":
     opt = utils.Config()
 
     # Prepare data and train_test_split
-    x_data, y_data = utils.import_data(
+    x_train_data, y_train_data = utils.import_data(
         data_root_path=opt.data_root_path,
         selected_bands=opt.selected_bands,
         regression=opt.regression,
@@ -21,20 +16,10 @@ if __name__ == "__main__":
         shuffle=True,
     )
 
-    x_train, y_train, x_test, y_test = utils.train_test_split(
-        x_data, y_data, train_ratio=opt.train_ratio)
-
     # Warning from sklearn documentation:
     # If training data is not C-contihuous, the error may occur.
     print(
-        f"Check if the input data is C-contiguous: {x_train.flags['C_CONTIGUOUS']}")
-
-    # Define scaler and SVR
-    scaler = StandardScaler()
-    svr = SVR()
-
-    # Scale the trainig data by z-score (Normalization)
-    pipe = Pipeline(steps=[("scaler", scaler), ("svr", svr)])
+        f"Check if the input data is C-contiguous: {x_train_data.flags['C_CONTIGUOUS']}")
 
     # Set parameters for Grid seach cross-validation
     tuned_params = [
@@ -50,18 +35,39 @@ if __name__ == "__main__":
         },
     ]
 
-    # Grid Search
-    model = GridSearchCV(pipe, tuned_params, cv=5)
-    model.fit(x_train, y_train)
+    # Import evaluation data
+    x_all_data, y_all_data = utils.import_data(
+        data_root_path=opt.data_root_path,
+        selected_bands=opt.selected_bands,
+        regression=False,
+        derivative=opt.derivative,
+        mushroom_class=opt.mushroom_class,
+        normalize="zscore",
+        shuffle=False,
+    )
 
-    print("Best parameters set: ")
-    print(model.best_params_)
-    print()
+    # Grid search by training on day 0 and day 28
+    rbf_param_set = tuned_params[0]
+    linear_param_set = tuned_params[1]
+    # RBF
+    for gamma in rbf_param_set["svr__gamma"]:
+        for C in rbf_param_set["svr__C"]:
+            model = trainer.build_SVR(kernel='rbf', gamma=gamma, C=C)
+            model.fit(x_train_data, y_train_data)
+            trainer.evaluate_SVR(model, x_all_data)
+            
 
-    means = model.cv_results_["mean_test_score"]
-    stds = model.cv_results_["std_test_score"]
+    # model.fit(x_train, y_train)
+    # params = model.get_params()
 
-    for mean, std, params in zip(means, stds, model.cv_results_["params"]):
-        print(f"Mean Accuracy: {mean:0.4f} ± {std*2:0.4f} for {params}")
+    # print("Best parameters set: ")
+    # print(model.best_params_)
+    # print()
 
-    y_true, y_pred = y_test, model.predict(x_test)
+    # means = model.cv_results_["mean_test_score"]
+    # stds = model.cv_results_["std_test_score"]
+
+    # for mean, std, params in zip(means, stds, model.cv_results_["params"]):
+    #     print(f"Mean Accuracy: {mean:0.4f} ± {std*2:0.4f} for {params}")
+
+    # y_true, y_pred = y_test, model.predict(x_test)
