@@ -43,12 +43,12 @@ if __name__ == "__main__":
         monitor='val_mean_squared_error',
         patience=500,
         restore_best_weights=True,
-        verbose=2
+        verbose=0
     )
 
     callbacks = [checkpoint, early_stop]
 
-    layout = [128]
+    layout = [256, 256, 256, 256]
 
     model = trainer.build_tf_model(
         neurons_layout=layout,
