@@ -1,6 +1,4 @@
-# Numeric Operations
 import numpy as np
-# Tensorflow
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 
 # Custom Modules
@@ -42,18 +40,18 @@ if __name__ == "__main__":
 
     reports_list = []
     reports_list.append(f"Class {opt.mushroom_class}")
-    for n_hidden in range(5, 6):
+    for n_hidden in range(1, 6):
 
-        # neurons_permutations = trainer.neuron_permutor(
-        #     n_hidden=n_hidden,
-        #     max_neuron=512,
-        #     min_neuron=32
-        # )
+        neurons_permutations = trainer.neuron_permutor(
+            n_hidden=n_hidden,
+            max_neuron=512,
+            min_neuron=32
+        )
         
-        neurons_permutations = [
-            [512, 512, 128, 64, 32],
-            [512, 256, 128, 64, 32]
-            ]
+        # neurons_permutations = [
+        #     [512, 512, 128, 64, 32],
+        #     [512, 256, 128, 64, 32]
+        #     ]
 
         print("=" * 120)
         print(f"Training with {n_hidden} hidden layers.")

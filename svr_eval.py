@@ -54,26 +54,13 @@ if __name__ == "__main__":
         for C in rbf_param_set["svr__C"]:
             model = trainer.build_SVR(kernel='rbf', gamma=gamma, C=C)
             model.fit(x_train_data, y_train_data)
-            trainer.evaluate_SVR(model, x_all_data, gamma, C)
-            
+            preds = model.predict(x_all_data)
+            trainer.eval_regression(
+                opt.mushroom_class, preds, gamma, C)
+
     # Linear
     for C in linear_param_set["svr__C"]:
         model = trainer.build_SVR(kernel='linear', C=C)
         model.fit(x_train_data, y_train_data)
-        trainer.evaluate_SVR(model, x_all_data, C)
-
-    
-    # model.fit(x_train, y_train)
-    # params = model.get_params()
-
-    # print("Best parameters set: ")
-    # print(model.best_params_)
-    # print()
-
-    # means = model.cv_results_["mean_test_score"]
-    # stds = model.cv_results_["std_test_score"]
-
-    # for mean, std, params in zip(means, stds, model.cv_results_["params"]):
-    #     print(f"Mean Accuracy: {mean:0.4f} ± {std*2:0.4f} for {params}")
-
-    # y_true, y_pred = y_test, model.predict(x_test)
+        preds = model.predict(x_all_data)
+        trainer.eval_regression(opt.mushroom_class, preds, C)

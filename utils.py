@@ -21,7 +21,7 @@ class Config():
             self.selected_bands = [i for i in range(300)]
         self.regression = True
         self.save_path = "MLP_classifier.hdf5"
-        self.mushroom_class = "B"
+        self.mushroom_class = "A"
         self.train_ratio = 0.5  # 0.8 for NN, 0.5 for SVM.
 
         # Model parameters
@@ -38,13 +38,21 @@ class Config():
         print(f"\nUsing class {self.mushroom_class} mushroom.")
 
 
-def import_data(data_root_path, selected_bands, regression=False, derivative=True, mushroom_class="A", normalize=None, shuffle=True):
+def import_data(
+    data_root_path,
+    selected_bands,
+    train_for_regression=False,
+    derivative=True,
+    mushroom_class="A",
+    normalize=None,
+    shuffle=True
+):
     """Import matlab matrix data into numpy array with labels
 
     Args:
         data_root_path (str): The path contains dates folders
         selected_bands (list of integer): A list of desired the bands
-        regression (bool, optional): Import data for regression.
+        train_for_regression (bool, optional): Import data of day 0 and day 28 for training regression.
         derivative (bool, optional): Whether to use derivative data or not. Defaults to "True".
         mushroom_class (str, optional): Select class A or class B. Defaults to "A".
         normalize (str, optional): Select normalization method. Defaults to "None".
@@ -54,7 +62,7 @@ def import_data(data_root_path, selected_bands, regression=False, derivative=Tru
         x_data (np array) [n_data, n_bands]: data with bands
         y_data (np array) [n_data]: data with labels
     """
-    if regression:
+    if train_for_regression:
         x_data, y_data = _load_regression_data(
             data_root_path, selected_bands, derivative, mushroom_class)
     else:
@@ -76,6 +84,17 @@ def import_data(data_root_path, selected_bands, regression=False, derivative=Tru
 
 
 def _load_regression_data(data_root_path, selected_bands, derivative, mushroom_class):
+    """Import data for regression. Train on the first day and last day only.
+
+    Args:
+        data_root_path (_type_): _description_
+        selected_bands (_type_): _description_
+        derivative (_type_): _description_
+        mushroom_class (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     dates = ['20200929', '20201027']
 
     mushroom_class = mushroom_class.upper()
@@ -93,7 +112,7 @@ def _load_regression_data(data_root_path, selected_bands, derivative, mushroom_c
         data_list = os.listdir(cur_folder_path)
 
         cur_data, cur_label = [], []
-        label = folder_idx // 28
+        label = folder_idx // 28  # Label with 0 and 1.
 
         for img in data_list:
             img_path = cur_folder_path + img
@@ -204,7 +223,7 @@ if __name__ == "__main__":
     x_data, y_data = import_data(
         'D:/Repos/Python/freshness-decay/data/',
         selected_bands=opt.selected_bands,
-        regression=True,
+        train_for_regression=True,
         derivative=False,
         mushroom_class=opt.mushroom_class,
         normalize="zscore",

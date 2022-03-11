@@ -1,22 +1,17 @@
-# Custom Modules
-import utils
-
-# Numeric Operations
 import numpy as np
-# Sci-Kit Learn
 from sklearn.model_selection import KFold
-# Prepare for SVR
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
-# Plotting
 from matplotlib import pyplot as plt
-
-# Tensorflow
 from tensorflow import keras
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.losses import SparseCategoricalCrossentropy
+from keras.losses import MeanSquaredError
+
+# Custom Modules
+import utils
 
 
 # Tensorflow and SVM Functions
@@ -59,35 +54,6 @@ def neuron_permutor(n_hidden: int, max_neuron='auto', min_neuron=32) -> list:
     return result
 
 
-def build_model(neurons_layout: list, activation: str, selected_bands: list, learning_rate: float):
-    """Construct model based on the parameters.
-
-    Args:
-        neurons_layout (list): A list of integers indicates the number of neurons in each layer.
-        activation (str): Activation name. e.g., "relu", "linear"
-        selected_bands (list): A list of integers indicates the desired bands.
-        learning_rate (float)
-
-    Returns:
-        Tensorflow model class: Compiled model based on the parameter.
-    """
-    # Construct model
-    model = Sequential()
-
-    for neurons in neurons_layout:
-        model.add(Dense(neurons, activation=activation))
-
-    model.add(Dense(15))  # Output
-
-    model.build(input_shape=(None, len(selected_bands)))
-
-    adam = keras.optimizers.Adam(lr=learning_rate)
-    criterion = SparseCategoricalCrossentropy(from_logits=True)
-    model.compile(optimizer=adam, loss=criterion, metrics=['accuracy'])
-
-    return model
-
-
 def KFold_training(
     n_splits: int,
     x_data: np.ndarray,
@@ -123,7 +89,6 @@ def KFold_training(
     """
     # Training with K-Fold Cross-Validation
     accuracy_hist = []
-    k = 0
     kf = KFold(n_splits=n_splits)
 
     for train_idx, test_idx in kf.split(x_data):
@@ -131,7 +96,7 @@ def KFold_training(
         y_train, y_test = y_data[train_idx], y_data[test_idx]
 
         # Build models, loss function, and optimizer
-        model = build_model(
+        model = build_tf_model(
             neurons_layout=neurons_layout,
             activation=activation,
             selected_bands=selected_bands,
@@ -161,8 +126,6 @@ def KFold_training(
         # utils.plot_loss_history(history)
         accuracy_hist.append(scores[1])
 
-        k += 1
-
     mean_acc = round(np.mean(accuracy_hist) * 100, 2)
     std_acc = round(np.std(accuracy_hist) * 100, 2)
 
@@ -170,6 +133,61 @@ def KFold_training(
 
     return report
 
+
+def build_tf_model(
+    neurons_layout: list,
+    activation: str,
+    selected_bands: list,
+    learning_rate: float,
+    objective='classification',
+):
+    """Construct model based on the parameters.
+
+    Args:
+        neurons_layout (list): A list of integers indicates the number of neurons in each layer.
+        activation (str): Activation name. e.g., "relu", "linear"
+        selected_bands (list): A list of integers indicates the desired bands.
+        learning_rate (float)
+
+    Returns:
+        Tensorflow model class: Compiled model based on the parameter.
+    """
+    # Construct model
+    model = Sequential()
+    for neurons in neurons_layout:
+        model.add(Dense(neurons, activation=activation))
+
+    if objective == 'classification':
+        model.add(Dense(15))  # Output layer
+        criterion = SparseCategoricalCrossentropy(from_logits=True)
+        metric = ['accuracy']
+    elif objective == 'regression':
+        model.add(Dense(1))
+        criterion = MeanSquaredError()
+        metric = ['mean_squared_error']
+
+    model.build(input_shape=(None, len(selected_bands)))
+
+    adam = keras.optimizers.Adam(lr=learning_rate)
+    model.compile(optimizer=adam, loss=criterion, metrics=metric)
+
+    return model
+
+def eval_mlp_regression(preds, mushroom_class, layout):
+    mean_regression_scores = _mean_pred_per_class(preds)
+
+    plt.figure()
+    plt.title(f"MLP freshness curve with {layout} on class {mushroom_class}.")
+    plt.plot(mean_regression_scores)
+    plt.savefig(f"../mlp_regress_results/{mushroom_class}_{layout}.png")
+
+def _mean_pred_per_class(preds):
+    n_data_per_class = 50
+    mean_regression_scores = []
+    for i in range(0, len(preds), n_data_per_class):
+        mean_of_class = np.mean(preds[i:i+n_data_per_class])
+        mean_regression_scores.append(mean_of_class)
+    return mean_regression_scores
 
 # SVR Functions
 
@@ -183,29 +201,28 @@ def build_SVR(kernel=None, gamma='auto', C=None):
     return model
 
 
-def evaluate_SVR(model, x_data, C, gamma=None):
-    '''Evaluate SVR model'''
-    preds = model.predict(x_data)
+def eval_regression(mushroom_class, preds, C, gamma=None):
+    '''Evaluate regression model'''
+    mean_regression_scores = _mean_pred_per_class(preds)
 
-    n_data_per_class = 50
-    mean_regression_scores = []
-    for i in range(0, len(preds), n_data_per_class):
-        mean_of_class = np.mean(preds[i:i+n_data_per_class])
-        mean_regression_scores.append(mean_of_class)
+    plot_freshness_curve(mushroom_class, C, gamma, mean_regression_scores)
 
+    print(mean_regression_scores)
+
+
+def plot_freshness_curve(mushroom_class, C, gamma, mean_regression_scores):
     plt.figure()
     if gamma == None:
         kernel = 'Linear'
         plt.title(f"kernel: {kernel}, C = {C}")
         plt.plot(mean_regression_scores)
-        plt.savefig(f"../svr_results/{kernel}_{C}.png")
+        plt.savefig(f"../svr_results/{mushroom_class}_{kernel}_{C}.png")
     else:
         kernel = 'RBF'
         plt.plot(mean_regression_scores)
         plt.title(f"kernel: {kernel}, gamma = {gamma}, C = {C}")
-        plt.savefig(f"../svr_results/{kernel}_{gamma}_{C}.png")
-
-    print(mean_regression_scores)
+        plt.savefig(
+            f"../svr_results/{mushroom_class}_{kernel}_{gamma}_{C}.png")
 
 
 if __name__ == "__main__":

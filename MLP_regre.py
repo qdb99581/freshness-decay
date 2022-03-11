@@ -21,7 +21,8 @@ def load_data(data_path, num_train_data, num_test_data, selected_bands):
         selected_bands (List): List of selected bands
 
     Returns:
-        training_data(List), testing_data(List): training data and testing data with dimension of [num_data, num_bands]
+        training_data(List), testing_data(List): training data and testing data with 
+                             dimension of [num_data, num_bands]
     """
     data_list = os.listdir(data_path)
     num_data = len(data_list)
