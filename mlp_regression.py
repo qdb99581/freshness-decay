@@ -48,7 +48,7 @@ if __name__ == "__main__":
 
     callbacks = [checkpoint, early_stop]
 
-    layout = [256, 256, 256, 256]
+    layout = [512]
 
     model = trainer.build_tf_model(
         neurons_layout=layout,
