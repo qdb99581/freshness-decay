@@ -17,6 +17,8 @@ if __name__ == "__main__":
         shuffle=True,
     )
 
+    x_train_data, y_train_data = x_train_data[:80], y_train_data[:80]
+
     # These data are for evaluation and plotting freshness curve
     x_all_data, y_all_data = utils.import_data(
         data_root_path=opt.data_root_path,

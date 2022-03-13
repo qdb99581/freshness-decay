@@ -13,7 +13,7 @@ class Config():
     # Configuration
     def __init__(self):
         # Data parameters
-        self.data_root_path = 'D:/Repos/Python/freshness-decay/preprocessed_data/'
+        self.data_root_path = '../data/'
         self.derivative = True
         if self.derivative:
             self.selected_bands = [i for i in range(299)]
@@ -21,7 +21,7 @@ class Config():
             self.selected_bands = [i for i in range(300)]
         self.regression = True
         self.save_path = "MLP_classifier.hdf5"
-        self.mushroom_class = "B"
+        self.mushroom_class = "A"
         self.train_ratio = 0.5  # 0.8 for NN, 0.5 for SVM.
 
         # Model parameters

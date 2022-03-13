@@ -89,6 +89,7 @@ def KFold_training(
     """
     # Training with K-Fold Cross-Validation
     accuracy_hist = []
+    k = 0
     kf = KFold(n_splits=n_splits)
 
     for train_idx, test_idx in kf.split(x_data):
@@ -125,6 +126,7 @@ def KFold_training(
 
         # utils.plot_loss_history(history)
         accuracy_hist.append(scores[1])
+        k += 1
 
     mean_acc = round(np.mean(accuracy_hist) * 100, 2)
     std_acc = round(np.std(accuracy_hist) * 100, 2)
@@ -162,7 +164,7 @@ def build_tf_model(
         criterion = SparseCategoricalCrossentropy(from_logits=True)
         metric = ['accuracy']
     elif objective == 'regression':
-        model.add(Dense(1))
+        model.add(Dense(1, activation='linear'))
         criterion = MeanSquaredError()
         metric = ['mean_squared_error']
 
@@ -173,6 +175,7 @@ def build_tf_model(
 
     return model
 
+
 def eval_mlp_regression(preds, mushroom_class, layout):
     mean_regression_scores = _mean_pred_per_class(preds)
 
@@ -180,6 +183,7 @@ def eval_mlp_regression(preds, mushroom_class, layout):
     plt.title(f"MLP freshness curve with {layout} on class {mushroom_class}.")
     plt.plot(mean_regression_scores)
     plt.savefig(f"../mlp_regress_results/{mushroom_class}_{layout}.png")
+
 
 def _mean_pred_per_class(preds):
     n_data_per_class = 50
@@ -190,6 +194,7 @@ def _mean_pred_per_class(preds):
     return mean_regression_scores
 
 # SVR Functions
+
 
 def build_SVR(kernel=None, gamma='auto', C=None):
     # Define scaler and SVR
