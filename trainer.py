@@ -6,7 +6,7 @@ from sklearn.svm import SVR
 from matplotlib import pyplot as plt
 from tensorflow import keras
 from keras.models import Sequential
-from keras.layers import Dense
+from keras.layers import Dense, Dropout
 from keras.losses import SparseCategoricalCrossentropy
 from keras.losses import MeanSquaredError
 
@@ -27,6 +27,10 @@ def neuron_permutor(n_hidden: int, max_neuron='auto', min_neuron=32) -> list:
     Returns:
         list: A list of permutation.
     """
+    if n_hidden < 1:
+        print("Number of hidden layer must >= 1.")
+        exit()
+
     if max_neuron == 'auto':
         power = np.log2(32) + n_hidden - 1
         max_neuron = int(2 ** power)
@@ -104,6 +108,7 @@ def KFold_training(
             learning_rate=learning_rate
         )
 
+        print(model.summary())
         print(f"Start training with the {k+1}/{n_splits} fold.")
 
         history = model.fit(
@@ -156,9 +161,19 @@ def build_tf_model(
     """
     # Construct model
     model = Sequential()
-    for neurons in neurons_layout:
-        model.add(Dense(neurons, activation=activation))
+    # Use original layout in the paper
+    if neurons_layout == "original":
+        model.add(Dense(256, activation='relu'))
+        model.add(Dense(256, activation='relu'))
+        model.add(Dense(256, activation='relu'))
+        model.add(Dropout(0.3))
+        model.add(Dense(256, activation='relu'))
+        model.add(Dropout(0.3))
+    else:
+        for neurons in neurons_layout:
+            model.add(Dense(neurons, activation=activation))
 
+    # Adding output layer based on task
     if objective == 'classification':
         model.add(Dense(15))  # Output layer
         criterion = SparseCategoricalCrossentropy(from_logits=True)
@@ -172,6 +187,7 @@ def build_tf_model(
 
     adam = keras.optimizers.Adam(lr=learning_rate)
     model.compile(optimizer=adam, loss=criterion, metrics=metric)
+    print(model.summary())
 
     return model
 

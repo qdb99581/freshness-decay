@@ -19,14 +19,15 @@ class Config():
             self.selected_bands = [i for i in range(299)]
         else:
             self.selected_bands = [i for i in range(300)]
-        self.regression = True
-        self.save_path = "MLP_classifier.hdf5"
-        self.mushroom_class = "A"
-        self.train_ratio = 0.5  # 0.8 for NN, 0.5 for SVM.
+        self.regression = False
+        # self.save_path = "original_regr/cp-{epoch:05d}.ckpt"
+        self.save_path = "MLP_classifier_B_relu.hdf5"
+        self.mushroom_class = "B"
+        self.train_ratio = 0.8  # 0.8 for NN, 0.5 for SVM.
 
         # Model parameters
         self.n_hidden_layers = 1
-        self.activation = 'linear'
+        self.activation = 'relu'
 
         # Training loop parameters
         self.n_KFold = 5
