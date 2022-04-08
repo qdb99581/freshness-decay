@@ -163,11 +163,11 @@ def build_tf_model(
     model = Sequential()
     # Use original layout in the paper
     if neurons_layout == "original":
-        model.add(Dense(256, activation='relu'))
-        model.add(Dense(256, activation='relu'))
-        model.add(Dense(256, activation='relu'))
+        model.add(Dense(256, activation=activation))
+        model.add(Dense(256, activation=activation))
+        model.add(Dense(256, activation=activation))
         model.add(Dropout(0.3))
-        model.add(Dense(256, activation='relu'))
+        model.add(Dense(256, activation=activation))
         model.add(Dropout(0.3))
     else:
         for neurons in neurons_layout:
@@ -198,7 +198,8 @@ def eval_mlp_regression(preds, mushroom_class, layout):
     plt.figure()
     plt.title(f"MLP freshness curve with {layout} on class {mushroom_class}.")
     plt.plot(mean_regression_scores)
-    plt.savefig(f"../mlp_regress_results/{mushroom_class}_{layout}.png")
+    plt.ylim(-.2, 1.2)
+    plt.savefig(f"./mlp_regr_origin_results_{mushroom_class}/{mushroom_class}_{layout}.png")
 
 
 def _mean_pred_per_class(preds):
@@ -249,4 +250,6 @@ def plot_freshness_curve(mushroom_class, C, gamma, mean_regression_scores):
 if __name__ == "__main__":
     opt = utils.Config()
 
-    print((neuron_permutor(1, 512, 32)))
+    # print((neuron_permutor(1, 512, 32)))
+    import os
+    print(os.listdir(".\original_regr"))

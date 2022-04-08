@@ -19,9 +19,9 @@ class Config():
             self.selected_bands = [i for i in range(299)]
         else:
             self.selected_bands = [i for i in range(300)]
-        self.regression = False
-        # self.save_path = "original_regr/cp-{epoch:05d}.ckpt"
-        self.save_path = "MLP_classifier_B_relu.hdf5"
+        self.regression = True
+        self.save_path = "./original_regr_B/cp-{epoch:04d}"
+        # self.save_path = "MLP_regression_B_relu.hdf5"
         self.mushroom_class = "B"
         self.train_ratio = 0.8  # 0.8 for NN, 0.5 for SVM.
 
@@ -221,17 +221,4 @@ def plot_loss_history(hist):
 
 if __name__ == "__main__":
     opt = Config()
-    x_data, y_data = import_data(
-        'D:/Repos/Python/freshness-decay/data/',
-        selected_bands=opt.selected_bands,
-        train_for_regression=True,
-        derivative=False,
-        mushroom_class=opt.mushroom_class,
-        normalize="zscore",
-        shuffle=True
-    )
-
-    x_train, y_train, x_test, y_test = train_test_split(
-        x_data, y_data, train_ratio=opt.train_ratio)
-
-    print("Test")
+    print(opt.save_path[:-14])
