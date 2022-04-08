@@ -4,6 +4,7 @@ import random
 import numpy as np
 from scipy import stats
 from scipy.io import loadmat
+import imageio
 from tqdm import tqdm
 from matplotlib import pyplot as plt
 from sklearn.preprocessing import LabelBinarizer  # Preprocessing
@@ -19,10 +20,10 @@ class Config():
             self.selected_bands = [i for i in range(299)]
         else:
             self.selected_bands = [i for i in range(300)]
-        self.regression = True
-        self.save_path = "./original_regr_B/cp-{epoch:04d}"
-        # self.save_path = "MLP_regression_B_relu.hdf5"
-        self.mushroom_class = "B"
+        self.regression = False
+        # self.save_path = "./original_regr_B/cp-{epoch:04d}"
+        self.save_path = "MLP_regression_A_relu.hdf5"
+        self.mushroom_class = "A"
         self.train_ratio = 0.8  # 0.8 for NN, 0.5 for SVM.
 
         # Model parameters
@@ -218,7 +219,15 @@ def plot_loss_history(hist):
     plt.legend(['train'], loc='upper right')
     plt.show()
 
+def make_gif(filedir, gif_name, duration=0.04):
+    filenames = os.listdir(filedir)
+
+    images = []
+    for filename in tqdm(filenames):
+        images.append(imageio.imread(filedir + filename))
+    imageio.mimsave(filedir+"/"+gif_name+".gif", images, duration=duration)
+
 
 if __name__ == "__main__":
     opt = Config()
-    print(opt.save_path[:-14])
+    make_gif("./mlp_regr_origin_results_B/", "result_B", 0.02)

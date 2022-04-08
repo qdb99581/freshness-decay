@@ -35,6 +35,7 @@ if __name__ == "__main__":
 
     # Scale the trainig data by z-score (Normalization)
     pipe = Pipeline(steps=[("scaler", scaler), ("svm", svm)])
+    # pipe = Pipeline(steps=[("svm", svm)])
 
     # Set parameters for Grid seach cross-validation
     tuned_params = [
