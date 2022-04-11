@@ -42,7 +42,8 @@ if __name__ == "__main__":
 
     callbacks = [checkpoint, early_stop]
 
-    mlp_layout = [512, 512, 32]
+    mlp_layout = [256, 32]
+    svm_C = 100
     mlp_acc_hist, svm_acc_hist = [], []
     kf = KFold(n_splits=opt.n_KFold)
 
@@ -77,9 +78,8 @@ if __name__ == "__main__":
         # Construct SVM model
         scaler = StandardScaler() # Normalization
         svm = SVC(
-            C=100,
-            kernel="linear",
-            gamma=1e-4
+            C=svm_C,
+            kernel="linear"
         )
         # svm_model = Pipeline(steps=[("scaler", scaler), ("svm", svm)])
         svm_model = Pipeline(steps=[("svm", svm)])
@@ -102,10 +102,11 @@ if __name__ == "__main__":
 
     # Generate report
     mlp_report = f"Accuracy of MLP: {mlp_mean_acc:2.2f}% ± {mlp_std_acc:2.2f}% for {mlp_layout}."
-    svm_report = f"Accuracy of SVM: {svm_mean_acc:2.2f}% ± {svm_std_acc:2.2f}% for C={100}, gamma={1e-4}."
+    svm_report = f"Accuracy of SVM: {svm_mean_acc:2.2f}% ± {svm_std_acc:2.2f}% for C={svm_C}."
 
     print()
     print("=" * 40)
+    print(f"Result of class {opt.mushroom_class}:")
     print(mlp_report)
     print(svm_report)
     print("=" * 40)

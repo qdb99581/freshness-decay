@@ -22,8 +22,8 @@ class Config():
             self.selected_bands = [i for i in range(300)]
         self.regression = False
         # self.save_path = "./original_regr_B/cp-{epoch:04d}"
-        self.save_path = "MLP_regression_A_relu.hdf5"
-        self.mushroom_class = "A"
+        self.save_path = "MLP_regression_B_relu.hdf5"
+        self.mushroom_class = "B"
         self.train_ratio = 0.8  # 0.8 for NN, 0.5 for SVM.
 
         # Model parameters
