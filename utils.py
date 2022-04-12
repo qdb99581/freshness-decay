@@ -1,5 +1,6 @@
 import os
 import random
+import pickle
 
 import numpy as np
 from scipy import stats
@@ -20,9 +21,9 @@ class Config():
             self.selected_bands = [i for i in range(299)]
         else:
             self.selected_bands = [i for i in range(300)]
-        self.regression = False
-        # self.save_path = "./original_regr_B/cp-{epoch:04d}"
-        self.save_path = "MLP_regression_B_relu.hdf5"
+        self.regression = True
+        # self.save_path = "./original_regr_A/cp-{epoch:04d}"
+        self.save_path = "MLP_regression_A_relu.hdf5"
         self.mushroom_class = "B"
         self.train_ratio = 0.8  # 0.8 for NN, 0.5 for SVM.
 
@@ -226,6 +227,31 @@ def make_gif(filedir, gif_name, duration=0.04):
     for filename in tqdm(filenames):
         images.append(imageio.imread(filedir + filename))
     imageio.mimsave(filedir+"/"+gif_name+".gif", images, duration=duration)
+
+def compute_scores(layout_acc_dict):
+    """Compute the scores by given dictionary, which has the form: {'model_id': [score_1, score_2, score_3]}
+
+    Args:
+        layout_acc_dict (dict): Dictionary with every layout and its list of scores
+
+    Returns:
+        dict: A dictionary with every layout and its score +/- std.
+    """
+    score_dict = {}
+    for layout_id, acc_list in layout_acc_dict.items():
+        cur_mean = round(np.mean(acc_list) * 100, 2)
+        cur_std = round(np.std(acc_list) * 100, 2)
+        score = f"{cur_mean:2.2f}% +/- {cur_std:2.2f}%"
+
+        score_dict[layout_id] = score
+
+    return score_dict
+
+# def save_dict(dict, mushroom_class):
+#     # Export reports
+#     with open(f"{mushroom_class}_derivative.txt", "wb") as text_file:
+#         # print(reports_array, file=text_file)
+#         pickle.dump(dict, text_file)
 
 
 if __name__ == "__main__":

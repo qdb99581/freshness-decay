@@ -1,7 +1,3 @@
-import os
-
-from tqdm import tqdm
-import tensorflow as tf
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 
 import utils
@@ -14,7 +10,7 @@ if __name__ == "__main__":
     x_train_data, y_train_data = utils.import_data(
         data_root_path=opt.data_root_path,
         selected_bands=opt.selected_bands,
-        train_for_regression=opt.regression,
+        train_for_regression=True,
         derivative=opt.derivative,
         mushroom_class=opt.mushroom_class,
         normalize=None,

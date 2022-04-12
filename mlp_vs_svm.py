@@ -1,14 +1,14 @@
+from tqdm import tqdm
+
 import numpy as np
+import pandas as pd
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from sklearn.model_selection import KFold
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
 # Custom Modules
 import utils
 import trainer
-
 
 if __name__ == "__main__":
     opt = utils.Config()
@@ -22,17 +22,6 @@ if __name__ == "__main__":
         shuffle=True,
     )
 
-    # Callbacks
-    checkpoint = ModelCheckpoint(
-        opt.save_path,
-        monitor='val_accuracy',
-        verbose=0,
-        save_best_only=True,
-        save_weights_only=False,
-        mode='auto',
-        initial_value_threshold=0.0
-    )
-
     early_stop = EarlyStopping(
         monitor='val_accuracy',
         patience=500,
@@ -40,75 +29,127 @@ if __name__ == "__main__":
         verbose=0
     )
 
-    callbacks = [checkpoint, early_stop]
+    callbacks = [early_stop]
 
-    mlp_layout = [256, 32]
-    svm_C = 100
-    mlp_acc_hist, svm_acc_hist = [], []
+    mlp_layouts = {
+        'MLP21': [64, 32],
+        'MLP22': [512, 512],
+        'MLP31': [128, 64, 32],
+        'MLP32': [512, 512, 512],
+        'MLP41': [256, 128, 64, 32],
+        'MLP42': [512, 512, 512, 512],
+        'MLP51': [512, 256, 128, 64, 32],
+        'MLP52': [512, 512, 512, 512, 512]
+    }
+    # mlp_layout_acc_dict has the same keys as mlp_layouts, but the value is a list,
+    # as the list contains different accuracy from K-Fold.
+    # e.g., {'MLP21': [20.0, 34.0, 15.0]}
+    mlp_layout_acc_dict = {}
+
+    svm_layouts = {
+        'lSVM1': [0.01],
+        'lSVM2': [1],
+        'lSVM3': [100],
+        'kSVM1': [0.01, 0.001],
+        'kSVM2': [0.01, 'scale'],
+        'kSVM3': [0.01, 'auto'],
+        'kSVM4': [1, 0.001],
+        'kSVM5': [1, 'scale'],
+        'kSVM6': [1, 'auto'],
+        'kSVM7': [100, 0.001],
+        'kSVM8': [100, 'scale'],
+        'kSVM9': [100, 'auto']
+    }
+    # svm_layout_acc_dict has the same keys as svm_layouts, but the value is a list,
+    # as the list contains different accuracy from K-Fold.
+    # e.g., {'lSVM1': [20.0, 34.0, 15.0]}
+    svm_params_acc_dict = {}
+
     kf = KFold(n_splits=opt.n_KFold)
-
     k = 0
     for train_idx, test_idx in kf.split(x_data):
+        tqdm.write(f"Start training with the {k+1}/{opt.n_KFold} fold...")
         x_train, x_test = x_data[train_idx], x_data[test_idx]
         y_train, y_test = y_data[train_idx], y_data[test_idx]
 
-        # MLP model
-        mlp_model = trainer.build_tf_model(
-            neurons_layout=mlp_layout,
-            activation=opt.activation,
-            selected_bands=opt.selected_bands,
-            learning_rate=opt.learning_rate,
-        )
-        
-        print(f"Start training with the {k+1}/{opt.n_KFold} fold.")
-        # Train MLP model
-        mlp_history = mlp_model.fit(
-            x_train, y_train,
-            batch_size=opt.batch_size,
-            validation_split=opt.valid_ratio,
-            epochs=opt.n_epochs,
-            verbose=1,
-            callbacks=callbacks
-        )
+        # Start training on different MLP layouts
+        for mlp_layout_id, layout in tqdm(mlp_layouts.items()):
+            # MLP model
+            mlp_model = trainer.build_tf_model(
+                neurons_layout=layout,
+                activation=opt.activation,
+                selected_bands=opt.selected_bands,
+                learning_rate=opt.learning_rate,
+            )
 
-        # Evaluate MLP model
-        mlp_scores = mlp_model.evaluate(x_test, y_test)
-        mlp_acc_hist.append(mlp_scores[1])
+            tqdm.write("=" * 15)
+            tqdm.write(
+                f"Start training MLP layout: {mlp_layout_id}: {layout}...")
+            tqdm.write(f"Current training progress: {k+1}/{opt.n_KFold} fold.")
+            # Train MLP model
+            mlp_history = mlp_model.fit(
+                x_train, y_train,
+                batch_size=opt.batch_size,
+                validation_split=opt.valid_ratio,
+                epochs=opt.n_epochs,
+                verbose=1,
+                callbacks=callbacks
+            )
 
-        # Construct SVM model
-        scaler = StandardScaler() # Normalization
-        svm = SVC(
-            C=svm_C,
-            kernel="linear"
-        )
-        # svm_model = Pipeline(steps=[("scaler", scaler), ("svm", svm)])
-        svm_model = Pipeline(steps=[("svm", svm)])
+            # Evaluate and record scores for MLP model
+            cur_mlp_scores = mlp_model.evaluate(x_test, y_test)
+            cur_mlp_acc = cur_mlp_scores[1]
 
-        # Train SVM model
-        svm_model.fit(x_train, y_train)
+            # Initialize if there's no current ID as key
+            if mlp_layout_id not in mlp_layout_acc_dict:
+                mlp_layout_acc_dict[mlp_layout_id] = []
 
-        # Evaluate SVM model
-        svm_scores = svm_model.score(x_test, y_test)
-        svm_acc_hist.append(svm_scores)
+            mlp_layout_acc_dict[mlp_layout_id].append(cur_mlp_acc)
+
+        tqdm.write(f"Start training on SVM...")
+        for svm_layout_id, params_list in tqdm(svm_layouts.items()):
+            # Determine current kernel to construct SVM model
+            if len(params_list) == 1:
+                svm_model = SVC(
+                    C=params_list[0],
+                    kernel='linear'
+                )
+            else:
+                svm_model = SVC(
+                    C=params_list[0],
+                    gamma=params_list[1],
+                    kernel='rbf'
+                )
+
+            # Train SVM model
+            svm_model.fit(x_train, y_train)
+
+            # Evaluate SVM model
+            cur_svm_score = svm_model.score(x_test, y_test)
+            if svm_layout_id not in svm_params_acc_dict:
+                svm_params_acc_dict[svm_layout_id] = []
+
+            svm_params_acc_dict[svm_layout_id].append(cur_svm_score)
 
         k += 1
 
-    # Compute two models avg accuracy and std
-    mlp_mean_acc = round(np.mean(mlp_acc_hist) * 100, 2)
-    mlp_std_acc = round(np.std(mlp_acc_hist) * 100, 2)
+    print("="*30)
+    print(f"Finish training, generating reports...")
 
-    svm_mean_acc = round(np.mean(svm_acc_hist) * 100, 2)
-    svm_std_acc = round(np.std(svm_acc_hist) * 100, 2)
+    mlp_scores = utils.compute_scores(mlp_layout_acc_dict)
+    svm_scores = utils.compute_scores(svm_params_acc_dict)
 
-    # Generate report
-    mlp_report = f"Accuracy of MLP: {mlp_mean_acc:2.2f}% ± {mlp_std_acc:2.2f}% for {mlp_layout}."
-    svm_report = f"Accuracy of SVM: {svm_mean_acc:2.2f}% ± {svm_std_acc:2.2f}% for C={svm_C}."
+    results_dir = "./mlp_svm_results/"
+    if opt.derivative:
+        data_mode = "derivative"
+    else:
+        data_mode = "reflectance"
 
-    print()
-    print("=" * 40)
-    print(f"Result of class {opt.mushroom_class}:")
-    print(mlp_report)
-    print(svm_report)
-    print("=" * 40)
+    mlp_score_df = pd.DataFrame(
+        list(mlp_scores.items()),
+        columns=["Model ID", "Scores"]).to_csv(results_dir + f"/mlp_results_{opt.mushroom_class}_{data_mode}.csv")
+    svm_scores_df = pd.DataFrame(
+        list(svm_scores.items()),
+        columns=["Model ID", "Scores"]).to_csv(results_dir + f"/svm_results_{opt.mushroom_class}_{data_mode}.csv")
 
-    
+    print(f"Reports are saved at {results_dir}")

@@ -193,19 +193,34 @@ def build_tf_model(
 
 
 def eval_mlp_regression(preds, mushroom_class, layout):
-    mean_regression_scores = _mean_pred_per_class(preds)
+    mean_regression_scores = _mean_pred_per_class(preds, mushroom_class)
+
+    
+    ticks = [f"D{i}" for i in range(0, 30, 2)]
+    if mushroom_class == "A":
+        x_spaces = [i for i in range(0, 14)]
+        ticks.pop(8)
+    else:
+        x_spaces = [i for i in range(0, 15)]
 
     plt.figure()
     plt.title(f"MLP freshness curve with {layout} on class {mushroom_class}.")
-    plt.plot(mean_regression_scores)
+    plt.plot(x_spaces, mean_regression_scores, marker="o")
+    plt.axhline(y=0.0, linestyle='--', color='r')
+    plt.axhline(y=1.0, linestyle='--', color='r')
+    plt.xlabel("Days")
+    plt.ylabel("Freshness Decay Score")
     plt.ylim(-.2, 1.2)
+    plt.xticks(x_spaces, ticks)
     plt.savefig(f"./mlp_regr_origin_results_{mushroom_class}/{mushroom_class}_{layout}.png")
 
 
-def _mean_pred_per_class(preds):
+def _mean_pred_per_class(preds, mushroom_class):
     n_data_per_class = 50
     mean_regression_scores = []
     for i in range(0, len(preds), n_data_per_class):
+        if mushroom_class == "A" and i == 400:
+            continue
         mean_of_class = np.mean(preds[i:i+n_data_per_class])
         mean_regression_scores.append(mean_of_class)
     return mean_regression_scores

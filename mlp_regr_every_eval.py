@@ -10,7 +10,7 @@ if __name__ == "__main__":
     opt = utils.Config()
 
     # These data are for evaluation and plotting freshness curve
-    x_all_data, y_all_data = utils.import_data(
+    x_all_data, _ = utils.import_data(
         data_root_path=opt.data_root_path,
         selected_bands=opt.selected_bands,
         train_for_regression=False,
