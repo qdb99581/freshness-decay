@@ -1,4 +1,5 @@
 import os
+import re
 from tqdm import tqdm
 
 import numpy as np
@@ -30,8 +31,8 @@ svm_derivative = {
 
 svm_reflectance = {
         'lSVM1': 0.4,
-        'lSVM2': 0.2,
-        'lSVM3': 0.15,
+        'lSVM2': 0.23,
+        'lSVM3': 0.45,
         'kSVM1': 0.45,
         'kSVM2': 0.75,
         'kSVM3': 0.32,
@@ -43,17 +44,12 @@ svm_reflectance = {
         'kSVM9': 0.78
     }
 
-x = ['lSVM1', 'lSVM2', 'lSVM3', 'kSVM1', 'kSVM2', 'kSVM3', 'kSVM4', 'kSVM5', 'kSVM6', 'kSVM7', 'kSVM8', 'kSVM9']
-x_axis = np.arange(len(x))
-svm_der = list(svm_derivative.values())
-svm_ref = list(svm_reflectance.values())
+# utils.plot_bars(svm_derivative, svm_reflectance, "A")
 
-plt.bar(x_axis - 0.2, svm_der, 0.4, label = 'Derivative Spectrum')
-plt.bar(x_axis + 0.2, svm_ref, 0.4, label = 'Reflectance Spectrum')
-  
-plt.xticks(x_axis, x)
-plt.xlabel("Models")
-plt.ylabel("Accuracy")
-plt.title("")
-plt.legend()
-plt.show()
+svm_ref_df = pd.read_csv("./mlp_svm_results/svm_results_A_reflectance.csv")
+svm_der_df = pd.read_csv("./mlp_svm_results/svm_results_A_derivative.csv")
+
+svm_ref_dict = utils.df2dict(svm_ref_df)
+svm_der_dict = utils.df2dict(svm_der_df)
+
+utils.plot_double_bars(svm_der_dict, svm_ref_dict, 'A')

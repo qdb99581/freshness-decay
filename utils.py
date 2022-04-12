@@ -16,14 +16,14 @@ class Config():
     def __init__(self):
         # Data parameters
         self.data_root_path = '../data/'
-        self.derivative = True
+        self.derivative = False
         if self.derivative:
             self.selected_bands = [i for i in range(299)]
         else:
             self.selected_bands = [i for i in range(300)]
-        self.regression = True
+        self.regression = False
         # self.save_path = "./original_regr_A/cp-{epoch:04d}"
-        self.save_path = "MLP_regression_A_relu.hdf5"
+        self.save_path = "MLP_regression_B_relu.hdf5"
         self.mushroom_class = "B"
         self.train_ratio = 0.8  # 0.8 for NN, 0.5 for SVM.
 
@@ -247,11 +247,48 @@ def compute_scores(layout_acc_dict):
 
     return score_dict
 
-# def save_dict(dict, mushroom_class):
-#     # Export reports
-#     with open(f"{mushroom_class}_derivative.txt", "wb") as text_file:
-#         # print(reports_array, file=text_file)
-#         pickle.dump(dict, text_file)
+def plot_double_bars(derivative_dict, reflectance_dict, mushroom_class):
+    x = list(derivative_dict.keys())
+    if x[0] == 'l' or x[0] == 'k':
+        model = 'SVM'
+    else:
+        model = 'MLP'
+
+    x_axis = np.arange(len(x))
+    der_acc = list(derivative_dict.values())
+    ref_acc = list(reflectance_dict.values())
+
+    plt.bar(x_axis-0.2, der_acc, 0.4, label='Derivative Spectrum', edgecolor='black')
+    plt.bar(x_axis+0.2, ref_acc, 0.4, label='Reflectance Spectrum', edgecolor='black' )
+    plt.xticks(x_axis, x)
+    plt.xlabel("Model")
+    plt.ylabel("Accuracy")
+    plt.ylim((0, 1.05))
+    plt.title(f"The accuracy of freshness by {model} on class {mushroom_class}")
+    plt.legend()
+    plt.show()
+
+def df2dict(report_df):
+    id = report_df['Model ID']
+    scores = report_df['Scores']
+
+    scores_dict = {}
+    for i in range(len(report_df.index)):
+        cur_id = id.iloc[i]
+        cur_score_str = scores.iloc[i]
+        score = _get_score_from_str(cur_score_str)
+        scores_dict[cur_id] = score
+
+    return scores_dict
+
+def _get_score_from_str(score_str):
+    pointer = 0
+    for idx, char in enumerate(score_str):
+        if char == '%':
+            pointer = idx
+            break
+
+    return float(score_str[:pointer]) / 100
 
 
 if __name__ == "__main__":
