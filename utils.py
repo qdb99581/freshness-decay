@@ -220,6 +220,7 @@ def plot_loss_history(hist):
     plt.legend(['train'], loc='upper right')
     plt.show()
 
+
 def make_gif(filedir, gif_name, duration=0.04):
     filenames = os.listdir(filedir)
 
@@ -227,6 +228,7 @@ def make_gif(filedir, gif_name, duration=0.04):
     for filename in tqdm(filenames):
         images.append(imageio.imread(filedir + filename))
     imageio.mimsave(filedir+"/"+gif_name+".gif", images, duration=duration)
+
 
 def compute_scores(layout_acc_dict):
     """Compute the scores by given dictionary, which has the form: {'model_id': [score_1, score_2, score_3]}
@@ -247,9 +249,10 @@ def compute_scores(layout_acc_dict):
 
     return score_dict
 
+
 def plot_double_bars(derivative_dict, reflectance_dict, mushroom_class):
     x = list(derivative_dict.keys())
-    if x[0] == 'l' or x[0] == 'k':
+    if x[0][0] == 'l' or x[0][0] == 'k':
         model = 'SVM'
     else:
         model = 'MLP'
@@ -258,15 +261,22 @@ def plot_double_bars(derivative_dict, reflectance_dict, mushroom_class):
     der_acc = list(derivative_dict.values())
     ref_acc = list(reflectance_dict.values())
 
-    plt.bar(x_axis-0.2, der_acc, 0.4, label='Derivative Spectrum', edgecolor='black')
-    plt.bar(x_axis+0.2, ref_acc, 0.4, label='Reflectance Spectrum', edgecolor='black' )
+    plt.figure(figsize=(10, 6))
+    plt.bar(x_axis-0.2, der_acc, 0.4,
+            label='Derivative Spectrum', edgecolor='black')
+    plt.bar(x_axis+0.2, ref_acc, 0.4,
+            label='Reflectance Spectrum', edgecolor='black')
     plt.xticks(x_axis, x)
     plt.xlabel("Model")
-    plt.ylabel("Accuracy")
+    plt.ylabel("Mean Accuracy")
     plt.ylim((0, 1.05))
-    plt.title(f"The accuracy of freshness by {model} on class {mushroom_class}")
+    plt.title(
+        f"The accuracy of freshness by {model} on class {mushroom_class}")
     plt.legend()
-    plt.show()
+    plt.savefig(
+        f"./mlp_svm_results/{model}_results_{mushroom_class}.png")    
+    # plt.show()
+
 
 def df2dict(report_df):
     id = report_df['Model ID']
@@ -281,7 +291,16 @@ def df2dict(report_df):
 
     return scores_dict
 
+
 def _get_score_from_str(score_str):
+    """This function extracts score from string. e.g., 9.87% +/- 2.01% as input
+        will get 9.87 as float answer.
+    Args:
+        score_str (str): score as string.
+
+    Returns:
+        _float_: score
+    """
     pointer = 0
     for idx, char in enumerate(score_str):
         if char == '%':
@@ -292,5 +311,17 @@ def _get_score_from_str(score_str):
 
 
 if __name__ == "__main__":
+    import pandas as pd
+
     opt = Config()
-    make_gif("./mlp_regr_origin_results_B/", "result_B", 0.02)
+
+    model = 'svm'
+    mushroom_class = "A"
+
+    ref_df = pd.read_csv(f"./mlp_svm_results/{model}_results_{mushroom_class}_reflectance.csv")
+    der_df = pd.read_csv(f"./mlp_svm_results/{model}_results_{mushroom_class}_derivative.csv")
+
+    ref_dict = df2dict(ref_df)
+    der_dict = df2dict(der_df)
+
+    plot_double_bars(der_dict, ref_dict, f'{mushroom_class}')
