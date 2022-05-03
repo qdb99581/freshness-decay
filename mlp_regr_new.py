@@ -10,10 +10,10 @@ if __name__ == "__main__":
     x_train_data, y_train_data = utils.import_data(
         data_root_path=opt.data_root_path,
         selected_bands=opt.selected_bands,
-        train_for_regression=opt.regression,
+        train_for_regression=True,
         derivative=opt.derivative,
         mushroom_class=opt.mushroom_class,
-        normalize="zscore",
+        normalize='zscore',
         shuffle=True,
     )
 
@@ -26,19 +26,8 @@ if __name__ == "__main__":
         train_for_regression=False,
         derivative=opt.derivative,
         mushroom_class=opt.mushroom_class,
-        normalize="zscore",
+        normalize='zscore',
         shuffle=False,
-    )
-
-    # Callbacks
-    checkpoint = ModelCheckpoint(
-        opt.save_path,
-        monitor='val_mean_squared_error',
-        verbose=2,
-        save_best_only=True,
-        save_weights_only=False,
-        mode='auto',
-        initial_value_threshold=0.0
     )
 
     early_stop = EarlyStopping(
@@ -48,9 +37,10 @@ if __name__ == "__main__":
         verbose=0
     )
 
-    callbacks = [checkpoint, early_stop]
+    callbacks = [early_stop]
 
-    layout = [512]
+    model_id = "MLP32"
+    layout = opt.mlp_layout[model_id]
 
     model = trainer.build_tf_model(
         neurons_layout=layout,
@@ -70,4 +60,4 @@ if __name__ == "__main__":
     )
 
     preds = model.predict(x_all_data)
-    trainer.eval_mlp_regression(preds, opt.mushroom_class, layout)
+    trainer.eval_mlp_regression(preds, opt.mushroom_class, model_id)

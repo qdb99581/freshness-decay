@@ -31,35 +31,13 @@ if __name__ == "__main__":
 
     callbacks = [early_stop]
 
-    mlp_layouts = {
-        'MLP21': [64, 32],
-        'MLP22': [512, 512],
-        'MLP31': [128, 64, 32],
-        'MLP32': [512, 512, 512],
-        'MLP41': [256, 128, 64, 32],
-        'MLP42': [512, 512, 512, 512],
-        'MLP51': [512, 256, 128, 64, 32],
-        'MLP52': [512, 512, 512, 512, 512]
-    }
+    mlp_layouts = opt.mlp_layout
     # mlp_layout_acc_dict has the same keys as mlp_layouts, but the value is a list,
     # as the list contains different accuracy from K-Fold.
     # e.g., {'MLP21': [20.0, 34.0, 15.0]}
     mlp_layout_acc_dict = {}
 
-    svm_layouts = {
-        'lSVM1': [0.01],
-        'lSVM2': [1],
-        'lSVM3': [100],
-        'kSVM1': [0.01, 0.001],
-        'kSVM2': [0.01, 'scale'],
-        'kSVM3': [0.01, 'auto'],
-        'kSVM4': [1, 0.001],
-        'kSVM5': [1, 'scale'],
-        'kSVM6': [1, 'auto'],
-        'kSVM7': [100, 0.001],
-        'kSVM8': [100, 'scale'],
-        'kSVM9': [100, 'auto']
-    }
+    svm_layouts = opt.svm_layouts
     # svm_layout_acc_dict has the same keys as svm_layouts, but the value is a list,
     # as the list contains different accuracy from K-Fold.
     # e.g., {'lSVM1': [20.0, 34.0, 15.0]}

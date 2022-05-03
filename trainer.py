@@ -166,9 +166,9 @@ def build_tf_model(
         model.add(Dense(256, activation=activation))
         model.add(Dense(256, activation=activation))
         model.add(Dense(256, activation=activation))
-        model.add(Dropout(0.3))
+        # model.add(Dropout(0.3))
         model.add(Dense(256, activation=activation))
-        model.add(Dropout(0.3))
+        # model.add(Dropout(0.3))
     else:
         for neurons in neurons_layout:
             model.add(Dense(neurons, activation=activation))
@@ -195,7 +195,6 @@ def build_tf_model(
 def eval_mlp_regression(preds, mushroom_class, layout):
     mean_regression_scores = _mean_pred_per_class(preds, mushroom_class)
 
-    
     ticks = [f"D{i}" for i in range(0, 30, 2)]
     if mushroom_class == "A":
         x_spaces = [i for i in range(0, 14)]
@@ -212,7 +211,8 @@ def eval_mlp_regression(preds, mushroom_class, layout):
     plt.ylabel("Freshness Decay Score")
     plt.ylim(-.2, 1.2)
     plt.xticks(x_spaces, ticks)
-    plt.savefig(f"./mlp_regr_origin_results_{mushroom_class}/{mushroom_class}_{layout}.png")
+    # plt.savefig(f"./mlp_regr_origin_results_{mushroom_class}/{mushroom_class}_{layout}.png")
+    plt.savefig(f"./regr_curves/{mushroom_class}_{layout}.png")
 
 
 def _mean_pred_per_class(preds, mushroom_class):
@@ -238,28 +238,33 @@ def build_SVR(kernel=None, gamma='auto', C=None):
     return model
 
 
-def eval_regression(mushroom_class, preds, C, gamma=None):
+def eval_regression(mushroom_class, preds, model_id):
     '''Evaluate regression model'''
-    mean_regression_scores = _mean_pred_per_class(preds)
+    mean_regression_scores = _mean_pred_per_class(preds, mushroom_class)
 
-    plot_freshness_curve(mushroom_class, C, gamma, mean_regression_scores)
-
-    print(mean_regression_scores)
+    plot_freshness_curve(mushroom_class, mean_regression_scores, model_id)
 
 
-def plot_freshness_curve(mushroom_class, C, gamma, mean_regression_scores):
-    plt.figure()
-    if gamma == None:
-        kernel = 'Linear'
-        plt.title(f"kernel: {kernel}, C = {C}")
-        plt.plot(mean_regression_scores)
-        plt.savefig(f"../svr_results/{mushroom_class}_{kernel}_{C}.png")
+def plot_freshness_curve(mushroom_class, mean_regression_scores, model_id):
+    ticks = [f"D{i}" for i in range(0, 30, 2)]
+    if mushroom_class == "A":
+        x_spaces = [i for i in range(0, 14)]
+        ticks.pop(8)
     else:
-        kernel = 'RBF'
-        plt.plot(mean_regression_scores)
-        plt.title(f"kernel: {kernel}, gamma = {gamma}, C = {C}")
-        plt.savefig(
-            f"../svr_results/{mushroom_class}_{kernel}_{gamma}_{C}.png")
+        x_spaces = [i for i in range(0, 15)]
+        
+    plt.figure()
+    plt.plot(x_spaces, mean_regression_scores, marker="o")
+    plt.axhline(y=0.0, linestyle='--', color='r')
+    plt.axhline(y=1.0, linestyle='--', color='r')
+    plt.xlabel("Days")
+    plt.ylabel("Freshness Decay Score")
+    plt.ylim(-.2, 1.2)
+    plt.xticks(x_spaces, ticks)
+    plt.title(
+        f"SVR freshness curve with {model_id} on class {mushroom_class}.")
+    plt.savefig(
+        f"./regr_curves/{mushroom_class}_{model_id}.png")
 
 
 if __name__ == "__main__":

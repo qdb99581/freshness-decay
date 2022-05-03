@@ -22,7 +22,7 @@ if __name__ == "__main__":
 
     model_dir = opt.save_path[:-14]
     model_folders = os.listdir(model_dir)
-
+    
     for folder in tqdm(model_folders):
         cur_model = tf.keras.models.load_model(model_dir + folder)
         cur_epoch = folder[-4:]

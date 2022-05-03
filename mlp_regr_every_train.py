@@ -26,7 +26,7 @@ if __name__ == "__main__":
         verbose=1,
         save_best_only=True,
         save_weights_only=False,
-        save_freq='epoch', # Save model for every 5 epoch
+        save_freq='epoch', # Save model for every epoch
         mode='auto'
     )
 
