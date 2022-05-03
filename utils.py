@@ -16,16 +16,41 @@ class Config():
     def __init__(self):
         # Data parameters
         self.data_root_path = '../data/'
-        self.derivative = False
+        self.derivative = True
         if self.derivative:
             self.selected_bands = [i for i in range(299)]
         else:
             self.selected_bands = [i for i in range(300)]
-        self.regression = False
-        # self.save_path = "./original_regr_A/cp-{epoch:04d}"
-        self.save_path = "MLP_regression_B_relu.hdf5"
-        self.mushroom_class = "B"
+        self.regression = True
+        self.save_path = "./original_regr_A/cp-{epoch:04d}"
+        # self.save_path = "MLP_regression_A_relu.hdf5"
+        self.mushroom_class = "A"
         self.train_ratio = 0.8  # 0.8 for NN, 0.5 for SVM.
+
+        self.mlp_layout = {
+            'MLP21': [64, 32],
+            'MLP22': [512, 512],
+            'MLP31': [128, 64, 32],
+            'MLP32': [512, 512, 512],
+            'MLP41': [256, 128, 64, 32],
+            'MLP42': [512, 512, 512, 512],
+            'MLP51': [512, 256, 128, 64, 32],
+            'MLP52': [512, 512, 512, 512, 512]
+        }
+        self.svm_layout = {
+            'lSVM1': [0.01],
+            'lSVM2': [1],
+            'lSVM3': [100],
+            'kSVM1': [0.01, 0.001],
+            'kSVM2': [0.01, 'scale'],
+            'kSVM3': [0.01, 'auto'],
+            'kSVM4': [1, 0.001],
+            'kSVM5': [1, 'scale'],
+            'kSVM6': [1, 'auto'],
+            'kSVM7': [100, 0.001],
+            'kSVM8': [100, 'scale'],
+            'kSVM9': [100, 'auto']
+        }
 
         # Model parameters
         self.n_hidden_layers = 1
