@@ -46,8 +46,8 @@ svm_reflectance = {
 
 # utils.plot_bars(svm_derivative, svm_reflectance, "A")
 
-svm_ref_df = pd.read_csv("./mlp_svm_results/svm_results_A_reflectance.csv")
-svm_der_df = pd.read_csv("./mlp_svm_results/svm_results_A_derivative.csv")
+svm_ref_df = pd.read_csv("./codes/mlp_svm_results/mlp_results_A_reflectance.csv")
+svm_der_df = pd.read_csv("./codes/mlp_svm_results/mlp_results_A_derivative.csv")
 
 svm_ref_dict = utils.df2dict(svm_ref_df)
 svm_der_dict = utils.df2dict(svm_der_df)
